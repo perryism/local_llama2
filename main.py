@@ -1,11 +1,13 @@
-from typing import Union
-
 from fastapi import FastAPI
 import logging
-import sys
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(filename='app.log',level=logging.DEBUG)
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+
+# log to a file and console
 logger = logging.getLogger(__name__)
+logger.addHandler(console)
 
 app = FastAPI()
 
@@ -37,20 +39,29 @@ llm = LlamaCpp(
 
 logger.debug(f"Done loading model")
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
 from pydantic import BaseModel
-
 
 class Query(BaseModel):
     query: str
 
+import json
+def invoke(query: str, retries: int = 3) -> str:
+    try:
+        logger.info("Generating...")
+        completion = llm(query)
+        logger.info(completion)
+        return json.loads(completion)
+    except Exception as e:
+        if retries > 0:
+            logger.warn(e)
+            logger.info("Retrying...")
+            return invoke(query, retries - 1)
+        else:
+            raise e
+
 @app.post("/generate")
 def generate(query: Query):
     logger.debug(f"Received query: {query.query}")
-    logger.info("Generating...")
-    return llm(query.query)
+    return invoke(query.query)
 
 

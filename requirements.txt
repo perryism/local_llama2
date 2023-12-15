@@ -1,0 +1,8 @@
+langchain==0.0.345
+langchain-core==0.0.9
+langchainhub==0.1.13
+langchainplus-sdk==0.0.17
+-e git+https://github.com/facebookresearch/llama.git@5827703b33e88045f5da6aac9c99aff16f3fec8d#egg=llama
+fastapi==0.104.0
+uvicorn==0.22.0
+pydantic==1.10.9
